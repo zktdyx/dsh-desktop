@@ -1,0 +1,31 @@
+{
+  "name": "@dsh-desktop/enter-behavior",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 输入框体验增强：回车换行、Ctrl+回车发送",
+  "keywords": ["deepseek", "harness", "dsh", "plugin", "enter", "input"],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "license": "MIT"
+}

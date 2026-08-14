@@ -1,0 +1,6 @@
+# 把本插件作为一行注入到 web profile 的组合中。
+# 该 patch 会在 dsh-base / dsh-web-app 之后叠加，
+# `- insert` 只新增一行、不覆盖任何既有行，安全。
+- insert:
+    - id: enter-behavior
+      name: '@dsh-desktop/enter-behavior'
