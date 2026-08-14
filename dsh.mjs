@@ -94,6 +94,8 @@ function candidateNodeModulesRoots() {
   const roots = [];
   const la = process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local");
   const ap = process.env.APPDATA || join(homedir(), "AppData", "Roaming");
+  // 专属安装目录（最稳定，不受 npx 缓存清理影响，优先使用）
+  roots.push(join(la, "DeepSeekHarnessDesktop", "dsh", "node_modules"));
   // npx 缓存：%LOCALAPPDATA%\npm-cache\_npx\<hash>\node_modules
   const npxCache = join(la, "npm-cache", "_npx");
   if (existsSync(npxCache)) {
@@ -121,9 +123,12 @@ function findDshInstallations() {
   const found = [];
   for (const root of candidateNodeModulesRoots()) {
     const bin = join(root, "@deepseek-ai", "dsh", "lib", "bin.js");
-    const clientJs = join(root, "@deepseek-ai", "dsh-client-ui-conversation", "lib", "client.js");
+    // client.js 可能平铺（npx 缓存）也可能嵌套在 dsh 自己的 node_modules 下（npm 11 全局安装）
+    const flat = join(root, "@deepseek-ai", "dsh-client-ui-conversation", "lib", "client.js");
+    const nested = join(root, "@deepseek-ai", "dsh", "node_modules", "@deepseek-ai", "dsh-client-ui-conversation", "lib", "client.js");
+    const clientJs = existsSync(flat) ? flat : (existsSync(nested) ? nested : null);
     if (existsSync(bin)) {
-      found.push({ root, bin, clientJs: existsSync(clientJs) ? clientJs : null });
+      found.push({ root, bin, clientJs });
     }
   }
   return found;
@@ -137,21 +142,24 @@ function locateClientJsFiles() {
   return findDshInstallations().map((i) => i.clientJs).filter(Boolean);
 }
 
-/** 确保 dsh 已安装（首次运行触发 npx 拉取），返回 bin.js 路径。 */
+/** 确保 dsh 已安装（缺失时安装到专属目录），返回 bin.js 路径。 */
 function ensureDshInstalled() {
   const bins = locateDshBin();
   if (bins.length > 0) return bins[0];
-  logLine("未找到 dsh 安装，正在通过 npx 拉取 @deepseek-ai/dsh ...");
-  const r = spawnSync("npx", ["--yes", "@deepseek-ai/dsh", "--version"], {
-    encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"], timeout: 180000,
+  const la = process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local");
+  const prefix = join(la, "DeepSeekHarnessDesktop", "dsh");
+  const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+  logLine(`未找到 dsh 安装，正在安装到 ${prefix} ...`);
+  const r = spawnSync(npm, ["install", "--prefix", prefix, "@deepseek-ai/dsh", "--no-audit", "--no-fund"], {
+    encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"], timeout: 300000,
   });
   if (r.error) {
-    fail(`无法运行 npx（${r.error.message}）。请确认已安装 Node.js 并加入 PATH。`);
+    fail(`无法运行 npm（${r.error.message}）。请确认已安装 Node.js 并加入 PATH。`);
     process.exit(1);
   }
   const again = locateDshBin();
   if (again.length > 0) return again[0];
-  fail("npx 已运行但仍未找到 dsh 安装路径。请手动执行一次 `npx @deepseek-ai/dsh web` 后再试。");
+  fail("npm 安装完成但仍未找到 dsh。请查看日志或手动执行安装。");
   process.exit(1);
 }
 
