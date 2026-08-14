@@ -1,0 +1,39 @@
+{
+  "name": "dsh-desktop-app",
+  "version": "1.2.0",
+  "description": "DeepSeek Harness 桌面应用（原生窗口访问 Harness Web UI）",
+  "main": "main.cjs",
+  "author": "dsh-desktop contributors",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.dsh.desktop",
+    "productName": "DeepSeek Harness",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "build/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DeepSeek Harness"
+    }
+  }
+}
