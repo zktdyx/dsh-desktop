@@ -25,7 +25,12 @@ function Invoke-Dsh([string]$command) {
 }
 
 $tray = New-Object System.Windows.Forms.NotifyIcon
-$tray.Icon = [System.Drawing.SystemIcons]::Application
+$iconPath = Join-Path $scriptDir 'dsh.ico'
+if (Test-Path -LiteralPath $iconPath) {
+    $tray.Icon = New-Object System.Drawing.Icon($iconPath)
+} else {
+    $tray.Icon = [System.Drawing.SystemIcons]::Application
+}
 $tray.Text = 'DeepSeek Harness'
 $tray.Visible = $true
 

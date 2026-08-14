@@ -486,6 +486,7 @@ function cmdInstall() {
 $ErrorActionPreference = 'Stop'
 $ws = New-Object -ComObject WScript.Shell
 $desktop = [Environment]::GetFolderPath('Desktop')
+$icon = ${psQuote(join(__dirname, "dsh.ico"))}
 $items = @(
   ${items}
 )
@@ -497,6 +498,7 @@ foreach ($it in $items) {
   $sc.WorkingDirectory = Split-Path $it.vbs
   $sc.WindowStyle = 7
   $sc.Description = 'DeepSeek Harness'
+  if (Test-Path -LiteralPath $icon) { $sc.IconLocation = $icon + ',0' }
   $sc.Save()
   Write-Output ('created: ' + $lnk)
 }

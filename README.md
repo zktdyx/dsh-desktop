@@ -18,6 +18,8 @@ dsh-desktop/
 ├── dsh.mjs              核心启动器（start/stop/open/status/patch/unpatch/install）
 ├── tray.ps1             系统托盘图标（一个图标：打开 / 停止 / 退出）
 ├── DeepSeekHarness.vbs  双击入口（无命令行窗口，拉起托盘图标）
+├── dsh.ico              黑鲸图标（托盘 + 桌面快捷方式）
+├── make-icon.mjs        从 favicon.svg 重新生成 dsh.ico 的脚本
 ├── plugin/              独立的 DSH 客户端插件（可选，用于 GitHub/npm 发布）
 ├── LICENSE
 └── README.md
