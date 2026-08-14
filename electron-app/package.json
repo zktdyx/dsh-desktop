@@ -1,6 +1,6 @@
 {
   "name": "dsh-desktop-app",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "DeepSeek Harness 桌面应用（原生窗口访问 Harness Web UI）",
   "main": "main.cjs",
   "author": "dsh-desktop contributors",

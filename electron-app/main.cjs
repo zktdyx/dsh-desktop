@@ -7,7 +7,7 @@ const { join } = require("path");
 const os = require("os");
 const http = require("http");
 
-const PORT = 3080;
+const PORT = parseInt(process.env.DSH_PORT, 10) || 3080;
 const HOST = "127.0.0.1";
 const URL = `http://${HOST}:${PORT}/`;
 
@@ -70,15 +70,42 @@ function waitUntilUp(timeoutMs = 90000) {
   });
 }
 
+// ── 定位系统 Node.js ──────────────────────────────────────────────
+// Electron 的 process.execPath 是 Electron 自身，不是 node；dsh 必须用真正的 Node 运行
+function locateNodeExe() {
+  const candidates = [];
+  if (process.platform === "win32") {
+    try {
+      const r = spawnSync("where", ["node"], { encoding: "utf8", windowsHide: true, timeout: 8000 });
+      for (const line of (r.stdout || "").split(/\r?\n/)) {
+        const p = line.trim();
+        if (p && existsSync(p)) candidates.push(p);
+      }
+    } catch { /* 忽略 */ }
+  }
+  candidates.push(
+    join(process.env.ProgramFiles || "C:\\Program Files", "nodejs", "node.exe"),
+    join(process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)", "nodejs", "node.exe"),
+    join(process.env.LOCALAPPDATA || "", "Programs", "nodejs", "node.exe")
+  );
+  for (const p of candidates) {
+    if (p && existsSync(p)) return p;
+  }
+  return "node"; // 兜底：依赖 PATH
+}
+
 // ── 启动 / 停止服务器 ─────────────────────────────────────────────
 function startServer() {
   const bin = locateDshBin();
   if (!bin) return false;
-  const child = spawn(process.execPath, [bin, "web", "--port", String(PORT)], {
+  const child = spawn(locateNodeExe(), [bin, "web", "--port", String(PORT)], {
     detached: true,
     windowsHide: true,
     stdio: "ignore",
     env: { ...process.env },
+  });
+  child.once("error", (err) => {
+    console.error("启动 dsh 服务失败:", err && err.message ? err.message : err);
   });
   serverPid = child.pid;
   child.unref();
